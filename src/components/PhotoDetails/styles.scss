@@ -1,0 +1,26 @@
+.photoDetails {
+  color: white;
+  overflow-wrap: break-word;
+
+  .title {
+    font-size: 15px;
+    font-weight: bold;
+  }
+
+  .name {
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  hr {
+    height: 1.5px;
+    width: 25%;
+    background-color: white;
+    border-style: none;
+    margin: 5px auto;
+  }
+
+  &:hover {
+    cursor: default;
+  }
+}
