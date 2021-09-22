@@ -31,7 +31,7 @@ test("should call correct url", async () => {
   jest.spyOn(global, "fetch").mockResolvedValue(response);
   const photos = await PhotoService.getPhotos();
   expect(fetch).toHaveBeenCalledWith(
-    "https://www.flickr.com/services/rest/?method=flickr.photos.getRecent&api_key=6928ef790145e80c48ac2f1f1a8508b4&format=json&nojsoncallback=1&per_page=25&page=1"
+    "https://www.flickr.com/services/rest/?method=flickr.photos.getRecent&api_key=6928ef790145e80c48ac2f1f1a8508b4&format=json&nojsoncallback=1&per_page=30&page=1"
   );
 });
 
