@@ -1,0 +1,32 @@
+//This file is just for reference - to showcase another way I have implemented infinite scroll
+
+//IntersectionObserver way to handle scroll event
+// useEffect(() => {
+//     const element = document.querySelector("#loadMoreImages");
+
+//     const handleIntersection = (entries: asny[]) => {
+//       entries.forEach((entry) => {
+//         if (
+//           entry.isIntersecting &&
+//           pageInfo.current.page &&
+//           pageInfo.current.pages
+//         ) {
+//           const nextPage = pageInfo.current.page + 1;
+//           if (nextPage <= pageInfo.current.pages) {
+//             getPhotos(nextPage);
+//           }
+//         }
+//       });
+//     };
+
+//     let intersectionObserver: IntersectionObserver;
+//     if (element) {
+//       intersectionObserver = new IntersectionObserver(handleIntersection);
+//       intersectionObserver.observe(element);
+//     }
+//     return () => {
+//       if (element && intersectionObserver) {
+//         intersectionObserver.unobserve(element);
+//       }
+//     };
+//   }, []);

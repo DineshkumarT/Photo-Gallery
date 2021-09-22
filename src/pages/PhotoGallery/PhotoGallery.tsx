@@ -3,12 +3,14 @@ import { Loader, PhotoTile } from "../../components";
 import useFavouritePhotos from "../../hooks/useFavouritePhotos";
 import { PhotoService } from "../../services";
 import type { Photo, Photos } from "../../types/common";
+import { PageRef } from "./PhotoGallery.types";
 import "./styles.scss";
 
-const PhotoGallery: React.FC<{}> = ({}) => {
+const PhotoGallery: React.FC<{}> = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isPending, setIsPending] = useState(false);
-  const pageInfo = useRef<Partial<Omit<Photos, "photo">>>({});
+  const pageInfoRef = useRef<Partial<PageRef>>({});
+  const galleryRef = useRef<HTMLDivElement>(null);
   const favouritePhotos = useFavouritePhotos();
 
   useEffect(() => {
@@ -18,56 +20,53 @@ const PhotoGallery: React.FC<{}> = ({}) => {
 
   const getPhotos = useCallback((pageNumber?: number) => {
     setIsPending(true);
+    pageInfoRef.current.isLoading = true;
     PhotoService.getPhotos<Photos>(pageNumber, ["owner_name"]).then(
       (photos) => {
         if (photos) {
           const { page, pages, photo } = photos;
-          pageInfo.current = { page, pages };
+          pageInfoRef.current = { page, pages };
           setPhotos((prev) => [...prev, ...photo]);
         }
         setIsPending(false);
+        pageInfoRef.current.isLoading = false;
       }
     );
   }, []);
+
+  const handleScrollEvent = useCallback(() => {
+    if (galleryRef.current) {
+      if (
+        window.scrollY + window.innerHeight >
+        galleryRef.current.clientHeight * 0.9
+      ) {
+        const { page, pages, isLoading } = pageInfoRef.current;
+        if (!isLoading && page && pages) {
+          const nextPage = page + 1;
+          if (nextPage <= pages) {
+            getPhotos(nextPage);
+          }
+        }
+      }
+    }
+  }, [galleryRef.current]);
 
   useEffect(() => {
     getPhotos();
   }, []);
 
   useEffect(() => {
-    const element = document.querySelector("#loadMoreImages");
+    window.addEventListener("scroll", handleScrollEvent);
 
-    const handleIntersection = (entries: any[]) => {
-      entries.forEach((entry) => {
-        if (
-          entry.isIntersecting &&
-          pageInfo.current.page &&
-          pageInfo.current.pages
-        ) {
-          const nextPage = pageInfo.current.page + 1;
-          if (nextPage <= pageInfo.current.pages) {
-            getPhotos(nextPage);
-          }
-        }
-      });
-    };
-
-    let intersectionObserver: IntersectionObserver;
-    if (element) {
-      intersectionObserver = new IntersectionObserver(handleIntersection);
-      intersectionObserver.observe(element);
-    }
     return () => {
-      if (element && intersectionObserver) {
-        intersectionObserver.unobserve(element);
-      }
+      window.removeEventListener("scroll", handleScrollEvent);
     };
   }, []);
 
   return (
     <>
       {photos.length > 0 && (
-        <div className={"photoGallery"}>
+        <div className={"photoGallery"} ref={galleryRef}>
           {photos.map((photo, index) => {
             const isFavourite = favouritePhotos[photo.id] ? true : false;
             return (
