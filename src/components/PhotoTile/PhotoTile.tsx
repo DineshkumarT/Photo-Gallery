@@ -23,13 +23,14 @@ const PhotoTile: React.FC<PhotoTileProps> = ({ photo, favourite = false }) => {
     }
   };
 
+  const getPhotoUrl = () => {
+    return `https://live.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`;
+  };
+
   return (
     <div className="photoContainer">
       <div className="photo">
-        <img
-          src={`https://live.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`}
-          alt={""}
-        />
+        <img src={getPhotoUrl()} alt={""} />
       </div>
       {isFavourite && (
         <div className="favouritesIcon">

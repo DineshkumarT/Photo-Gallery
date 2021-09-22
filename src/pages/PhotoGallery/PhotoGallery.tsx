@@ -1,77 +1,57 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Loader, PhotoTile } from "../../components";
 import useFavouritePhotos from "../../hooks/useFavouritePhotos";
+import useInfiniteScroll from "../../hooks/useInfiniteScroll";
 import { PhotoService } from "../../services";
 import type { Photo, Photos } from "../../types/common";
-import { PageRef } from "./PhotoGallery.types";
+import type { PageRef } from "./PhotoGallery.types";
 import "./styles.scss";
 
 const PhotoGallery: React.FC<{}> = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isPending, setIsPending] = useState(false);
-  const pageInfoRef = useRef<Partial<PageRef>>({});
+  const pageRef = useRef<Partial<PageRef>>({});
   const galleryRef = useRef<HTMLDivElement>(null);
   const favouritePhotos = useFavouritePhotos();
-
-  useEffect(() => {
-    const photoArray = Object.values(favouritePhotos);
-    setPhotos((previousState) => [...photoArray, ...previousState]);
-  }, [favouritePhotos]);
+  const favouritePhotoList = useMemo(
+    () => Object.values(favouritePhotos),
+    [favouritePhotos]
+  );
 
   const getPhotos = useCallback((pageNumber?: number) => {
     setIsPending(true);
-    pageInfoRef.current.isLoading = true;
+    pageRef.current.isLoading = true;
     PhotoService.getPhotos<Photos>(pageNumber, ["owner_name"]).then(
       (photos) => {
         if (photos) {
           const { page, pages, photo } = photos;
-          pageInfoRef.current = { page, pages };
+          pageRef.current = { page, pages };
           setPhotos((prev) => [...prev, ...photo]);
         }
         setIsPending(false);
-        pageInfoRef.current.isLoading = false;
+        pageRef.current.isLoading = false;
       }
     );
   }, []);
 
-  const handleScrollEvent = useCallback(() => {
-    if (galleryRef.current) {
-      if (
-        window.scrollY + window.innerHeight >
-        galleryRef.current.clientHeight * 0.9
-      ) {
-        const { page, pages, isLoading } = pageInfoRef.current;
-        if (!isLoading && page && pages) {
-          const nextPage = page + 1;
-          if (nextPage <= pages) {
-            getPhotos(nextPage);
-          }
-        }
-      }
-    }
-  }, [galleryRef.current]);
+  useInfiniteScroll(galleryRef, pageRef, getPhotos);
 
   useEffect(() => {
     getPhotos();
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScrollEvent);
-
-    return () => {
-      window.removeEventListener("scroll", handleScrollEvent);
-    };
   }, []);
 
   return (
     <>
       {photos.length > 0 && (
         <div className={"photoGallery"} ref={galleryRef}>
+          {favouritePhotoList.map((photo, index) => {
+            return <PhotoTile key={index} photo={photo} favourite={true} />;
+          })}
           {photos.map((photo, index) => {
-            const isFavourite = favouritePhotos[photo.id] ? true : false;
-            return (
-              <PhotoTile key={index} photo={photo} favourite={isFavourite} />
-            );
+            const isFavouritePhoto = favouritePhotos[photo.id] ? true : false;
+            return !isFavouritePhoto ? (
+              <PhotoTile key={index} photo={photo} favourite={false} />
+            ) : null;
           })}
         </div>
       )}

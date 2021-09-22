@@ -1,3 +1,4 @@
+import { API_KEY, API_METHOD, API_URL } from "../constants/api";
 import type { Params } from "./services.types";
 
 type ParamKey = keyof Params;
@@ -28,12 +29,12 @@ export class PhotoService {
   static getPhotos = async <T>(
     page = 1,
     extras?: string[],
-    perPage = 25
+    perPage = 30
   ): Promise<T | null> => {
-    const url = "https://www.flickr.com/services/rest/";
+    const url = API_URL;
     const params = {
-      method: "flickr.photos.getRecent",
-      api_key: "6928ef790145e80c48ac2f1f1a8508b4",
+      method: API_METHOD.GET_RECENT_PHOTOS,
+      api_key: API_KEY,
       format: "json",
       nojsoncallback: 1,
       per_page: perPage,
